@@ -1,17 +1,41 @@
-import express from "express";
-import dotenv from "dotenv";
+import express, { Application } from "express";
+import morgan from "morgan";
+import cors from "cors";
+import bodyParser from "body-parser";
+import authRoutes from "./routes/authRoutes";
 
-dotenv.config();
+class Server {
+  private app: Application;
 
-const app = express();
+  constructor() {
+    this.app = express();
+    this.config();
+    this.routes();
+    this.app.listen(this.app.get("port"), () => {
+      console.log("Server on port", this.app.get("port"));
+    });
+  }
 
-/*  DotEnv  */
-const port = process.env.PORT;
+  //Configuración de Módulos
+  config(): void {
+    // configuración del puerto para el servidor
+    this.app.set("port", 3000);
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+    // muestra las peticiones en consola
+    this.app.use(morgan("dev"));
 
-app.listen(port, () => {
-  return console.log(`Express is listening at http://localhost:${port}`);
-});
+    // puertos de conexión de la API
+    this.app.use(cors());
+
+    // solo se permiten peticiones en formato JSON
+    this.app.use(bodyParser.json());
+    this.app.use(bodyParser.urlencoded({ extended: false }));
+  }
+
+  //Configura las Rutas
+  routes() {
+    this.app.use("/", authRoutes);
+  }
+}
+
+const server = new Server();
